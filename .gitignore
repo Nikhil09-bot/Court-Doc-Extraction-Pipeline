@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+data/*
+!data/raw/
+!data/raw/.gitkeep
+!data/ocr/
+!data/ocr/.gitkeep
+*.pdf
+credentials/
+*.key.json

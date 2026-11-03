@@ -1,0 +1,31 @@
+name: Test and deploy Cloud Run Job
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: pytest
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: |
+          gcloud builds submit --tag ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/court-docs/court-doc-extraction:${{ github.sha }}
+          gcloud run jobs deploy court-doc-extraction \
+            --image=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/court-docs/court-doc-extraction:${{ github.sha }} \
+            --region=${{ vars.GCP_REGION }} \
+            --set-env-vars=GOOGLE_CLOUD_PROJECT=${{ vars.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=${{ vars.GCP_REGION }},GCS_BUCKET=${{ vars.GCS_BUCKET }},BQ_DATASET=extraction,GEMINI_MODEL=gemini-2.5-flash,DOCAI_LOCATION=us,DOCAI_PROCESSOR_ID=${{ vars.DOCAI_PROCESSOR_ID }},MAX_WORKERS=5,DEFAULT_DOC_LIMIT=5

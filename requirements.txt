@@ -1,0 +1,10 @@
+python-dotenv
+google-genai
+google-cloud-vision
+google-cloud-documentai
+google-cloud-bigquery
+google-cloud-storage
+pymupdf
+pytest
+pydantic
+opencv-python-headless
